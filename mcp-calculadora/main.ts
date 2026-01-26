@@ -71,7 +71,7 @@ server.registerTool("mutiplicar",
         }
 )
 
-server.registerTool("restar",
+server.registerTool("resto",
         {
                 title: "Resta dos números",
                 description: "Recibe dos numeros y devuelve su resta",

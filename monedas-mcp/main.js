@@ -14,11 +14,11 @@ server.registerTool(
         title: "Convertir Monedas",
         description: "Devuelve el valor actual de la moneda que necesitas (USD, EUR, etc)",
         inputSchema: {
-            currency: z.string.min(1, "Debes indicar la moneda")
+            currency: z.string().min(1, "Debes indicar la moneda")
         },
     },   
         async ({currency}) => {
-            const urls = `https://cdn.moneyconvert.net/api/latest.json`;
+            const url = `https://cdn.moneyconvert.net/api/latest.json`;
             const response = await fetch(url);
             if(!response.ok){
                 throw new Error("Error al acceder a la info del api ");
@@ -28,7 +28,7 @@ server.registerTool(
             const value = data.rates[currency.toUpperCase()]
 
             if(!value){
-                throw new error("No se encontro la moneda"+currency)
+                throw new Error("No se encontro la moneda"+currency)
 
             }
 
@@ -36,7 +36,7 @@ server.registerTool(
                 content: [
                     {
                         type: "text",
-                        text: `El valor actual de ${currency.toUpperCase()} es: ${value}`
+                        text: `El valor actual de ${currency.toUpperCase()} es: ${value} la base es USD`
                     }
                 ]
             }
@@ -45,3 +45,57 @@ server.registerTool(
 
     )
     
+
+    server.registerTool(
+    "conversor_tipo_cambio",
+    {
+        title: "Convertir una cifra de moneda a otra",
+        description: "Devuelve el valor de una moneda frente a otra)",
+        inputSchema: {
+           origin: z.string().length(3, "Debe ser un valor ISO que represente una moneda"),
+           destination:  z.string().length(3, "Debe ser un valor ISO que represente una moneda"),
+           amount:z.number()
+        },
+    },   
+        async ({origin, destination, amount}) => {
+            const url = `https://cdn.moneyconvert.net/api/latest.json`;
+            const response = await fetch(url);
+            if(!response.ok){
+                throw new Error("Error al acceder a la info del api ");
+            }
+
+            const data = await response.json();
+            const {base, rates} = data;
+
+            if(!base || !rates){
+                throw new Error("No se encontro la moneda"+currency)
+
+            }
+
+            let rate;
+
+            if(origin === base){
+                rate = rates[destination];
+            }else{
+                const inverse = rates[origin];
+                rate = rates[destination] / inverse;
+                
+            }
+
+            const value_converted = amount * rate;
+
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `${amount} ${origin} = ${value_converted.toFixed(2)} ${destination} (Tasa: ${rate.toFixed(5)}), Moneda Base: ${base} `
+                    }
+                ]
+            }
+
+        }
+
+    )
+
+    const transport = new StdioServerTransport();
+    await server.connect(transport);

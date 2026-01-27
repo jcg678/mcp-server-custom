@@ -1,0 +1,16 @@
+{
+  "name": "mcp-tiempo",
+  "version": "1.0.0",
+  "description": "mcp para consultar el tiempo de cualquier ciudad",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.3",
+    "zod": "^4.3.6"
+  }
+}

@@ -1,4 +1,7 @@
-const project = require("../models/project");
+const fs = require("fs");
+const path = require("path");
+
+
 const Project = require("../models/project");
 
 const save = (req,res)=>{
@@ -89,10 +92,143 @@ const item = (req, res)=>{
 }
 
 
+const deleteProject = (req, res)=>{
+    let id = req.params.id;
+
+    Project.findById(id).deleteOne().then(project=>{
+
+        if(!project){
+                return res.status(404).send({
+            status: "No se ha borrado",
+
+                 })
+        }
+
+        return res.status(200).send({
+            status: "success",
+            project
+        })
+
+    }).catch(error=>{
+        return res.status(500).send({
+            status: "error",
+            message: "Error al borrar el detalle",
+            error
+        })
+    })
+}
+
+
+const update = (req,res)=>{
+    let body = req.body;
+
+        console.log(body);
+        if(!body || !body.id){
+            return res.status(404).send({
+                    status: "error",
+                    message: "no se ha el body"
+
+                })
+        }
+
+        Project.findByIdAndUpdate(body.id, body,{new:true})
+        .then(projectUpdate=>{
+
+
+                    if(!projectUpdate){
+                        return res.status(404).send({
+                        status: "No se ha actualizado",
+
+                    })
+                    }
+
+        return res.status(200).send({
+            status: "success",
+            project: projectUpdate
+        })
+        }).catch(error=>{
+             return res.status(500).send({
+            status: "error",
+            message: "No se puede actulizar",
+            error
+        })
+        })
+}
+
+const upload = (req,res) =>{
+
+    let id = req.params.id;
+
+    
+    if(!req.file){
+        return res.status(404).send({message: "No enviado archivo"});
+    }
+
+
+    const filePath = req.file.path;
+    const extension = path.extname(req.file.originalname).toLocaleLowerCase().replace(".","");
+
+    const validExtensions = ["png", "jpg", "jpeg", "gif"];
+
+    if(!validExtensions.includes(extension)){
+        fs.unlinkSync(filePath)
+         return res.status(200).send({message: "Extension no valida"});
+    }
+
+            Project.findByIdAndUpdate({_id:id}, {image: req.file.filename},{new:true})
+        .then(projectUpdate=>{
+
+
+                    if(!projectUpdate){
+                        return res.status(404).send({
+                        status: "No se ha actualizado",
+
+                    })
+                    }
+
+        return res.status(200).send({
+            status: "success",
+            project: projectUpdate
+        })
+        }).catch(error=>{
+             return res.status(500).send({
+            status: "error",
+            message: "No se puede actulizar",
+            error
+        })
+        })
+
+
+
+}
+
+const getImage = (req,res) =>{ 
+
+    let file = req.params.file;
+
+    let filePath = "./uploads/images/"+file;
+
+    fs.stat(filePath,(error, exist)=>{
+        if(!error && exist){
+
+            return res.sendfile(path.resolve(filePath));
+        }else{
+            return res.status(500).send({message: "Error"});
+        }
+
+    })
+
+         
+}
+
 
 
 module.exports = {
     save,
     list,
-    item
+    item,
+    deleteProject,
+    update,
+    upload,
+    getImage
 }
